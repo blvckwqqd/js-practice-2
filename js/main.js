@@ -94,7 +94,7 @@ const displayList = (list) => {
 }
 //TODO displayfiltered()
 //TODO Рендер с параметром(нужны регионы\нет)
-const displayTable = (list, name) =>{
+const displayTable = (list, name) => {
     let div = document.getElementsByClassName(name)[0];
     let table = document.createElement('table');
 
@@ -121,11 +121,11 @@ const displayTable = (list, name) =>{
     if (!table.classList.contains('Secondary')) {
         table.onclick = (e) => {
             let tr = e.target.closest('tr');
-            if(activeTr == tr) return;
-            if(activeTr) activeTr.classList.remove('active');
+            if (activeTr == tr) return;
+            if (activeTr) activeTr.classList.remove('active');
             activeTr = tr;
             activeTr.classList.add('active');
-            displayFilteredTable(data, activeTr);
+            displaySubTable(data, activeTr);
         }
     }
 
@@ -134,47 +134,21 @@ const displayTable = (list, name) =>{
 
 }
 
-const displayFilteredTable = (list, name, isRegion = false, tr = null) => {
+const displaySubTable = (list, elem) => {
     //let arr = list.filter(item => item.level == '2');
-    let div = document.getElementsByClassName(name)[0];
     let table = document.createElement('table');
-    if (isRegion) {
-        let prim = document.getElementsByClassName('Secondary')[0];
-        if (prim) prim.remove();
-        table.classList.add('Secondary');
-    }else{
-        table.classList.add('Primary');
-    }
-
-    //Инициализация thead
-    let thead = document.createElement('thead');
-    let thr = thead.insertRow();
-    let thdCode = thr.insertCell();
-    thdCode.textContent = 'Код';
-    let thdName = thr.insertCell();
-    thdName.textContent = 'Название';
-    let thdLevel = thr.insertCell();
-    thdLevel.textContent = 'Уровень';
-    table.appendChild(thead);
+    table.classList.add('Secondary');
 
     // Обойтись без split'a(substring)
-    if (tr) {
-        list = list.filter(elem => {
-            let [code1, code2, code3, code4] = elem.code.split('-');
-            let [code1T, code2T, code3T, code4T] = tr.firstChild.textContent.split('-');
-            return elem.level != '2' && code1 == code1T && code2 != '000';
+    list = list.filter(item => {
+        let [code1, code2, code3, code4] = item.code.split('-');
+        let [code1T, code2T, code3T, code4T] = elem.firstChild.textContent.split('-');
+        return item.level != '2' && code1 == code1T && code2 != '000';
 
-        })
-        if (list.length == 0) {
-            alert('Пусто(');
-            return;
-        }
-    }
-
+    })
     // Рисование таблицы
     for (let i = 0; i < list.length; i++) {
         let tr = table.insertRow();
-        if(!isRegion)tr.classList.add('row');
         for (const key in list[i]) {
             let td = tr.insertCell();
             td.textContent = list[i][key];
@@ -182,14 +156,8 @@ const displayFilteredTable = (list, name, isRegion = false, tr = null) => {
         }
         table.appendChild(tr);
     }
-    if (!table.classList.contains('Secondary')) {
-        table.onclick = (e) => {
-            let tr = e.target.closest('.row');
-            displayTable(data, 'Container', true, tr);
-        }
-    }
 
-    div.appendChild(table);
+    elem.insertAdjacentElement('afterEnd',table);
 
 }
 
