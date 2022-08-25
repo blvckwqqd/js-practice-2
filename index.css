@@ -1,0 +1,80 @@
+* {
+    margin: 0;
+    padding: 0;
+    font-size: large;
+    /* filter: blur(0.5px); */
+}
+
+.Container {
+    display: flex;
+    width: 100%;
+    height: 800px;
+    
+    justify-content: space-between;
+
+}
+
+table {
+    display: flex;
+    flex-direction: column;
+    margin-left: 15px;
+    margin-right: 15px;
+    min-width: 500px;
+    max-width: 800px;
+
+    overflow-y: scroll;
+    overflow-x: hidden;
+
+
+    border: 1px solid black;
+    border-collapse: collapse;
+
+}
+
+tr {
+    display: flex;
+    width: 100%;
+
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+
+td {
+    padding: 5px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+
+td:nth-child(2) {
+    flex-shrink: 0.5;
+}
+
+tr:nth-child(odd) {
+    background-color: rgb(212, 230, 245);
+}
+
+thead>tr {
+    font-weight: bold;
+    background-color: rgb(253, 113, 94) !important;
+}
+
+tr:hover {
+    background-color: rgb(131, 197, 255);
+    border: 2px solid black;
+}
+
+.Input {
+    display: flex;
+    width: 100%;
+    height: 70px;
+    align-items: center;
+    justify-content: space-around;
+    background-color: rgb(170, 215, 255);
+}
+.active{
+    background-color: rgba(195, 255, 104, 0.747)!important;
+}
