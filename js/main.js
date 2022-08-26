@@ -12,14 +12,17 @@ const input = document.getElementsByClassName('Input-region')[0];
 
 input.oninput = () => {
     let rows = document.getElementsByClassName('row');
+    let table = document.getElementsByClassName('Secondary')[0];
     if (input.value.length > 3) {
         for (let i = 0; i < rows.length; i++) {
             let isContain = rows.item(i).childNodes[1].textContent.includes(input.value);
             if (!isContain) rows.item(i).style.display = 'none';
+            if(table) table.style.display = 'none'
         }
     } else {
         for (let i = 0; i < rows.length; i++) {
             rows.item(i).style.display = 'flex';
+            if(table) table.style.display = 'flex';
         }
     }
 }
@@ -31,6 +34,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
 const loadRegex = async (name) => {
+    
     let result = await fetch('/data/' + name, {
         headers: {
             'Content-Type': 'text/plain',
@@ -40,7 +44,6 @@ const loadRegex = async (name) => {
     let text = await result.text();
 
     const regex = /(\d+)\";\"(\d+)\";\"(\d+)\";\"(\d+)\";\"\d\";\"(\d+)\";\"(.*?)\";+/gm
-
     let res = text.matchAll(regex);
     let arr = [];
 
@@ -137,13 +140,12 @@ const displayTable = (list, name, tableName = null) => {
 }
 
 const displaySubTable = (list, elem) => {
-    //let arr = list.filter(item => item.level == '2');
+
     let existingTable = document.getElementsByClassName('Secondary')[0];
     if (existingTable) existingTable.remove();
     let table = document.createElement('table');
     table.classList.add('Secondary');
 
-    // Обойтись без split'a(substring)
     let arr = filterList(list, elem, true);
     if (arr.length == 0) return;
     // Рисование таблицы
