@@ -13,11 +13,13 @@ const input = document.getElementsByClassName('Input-region')[0];
 input.oninput = () => {
     let rows = document.getElementsByClassName('row');
     let table = document.getElementsByClassName('Secondary')[0];
+    let cities = document.getElementsByClassName('Cities')[0];
     if (input.value.length > 3) {
         for (let i = 0; i < rows.length; i++) {
             let isContain = rows.item(i).childNodes[1].textContent.includes(input.value);
             if (!isContain) rows.item(i).style.display = 'none';
             if(table) table.style.display = 'none'
+            if(cities) cities.remove();
         }
     } else {
         for (let i = 0; i < rows.length; i++) {
@@ -163,8 +165,11 @@ const displaySubTable = (list, elem) => {
         if (tr.parentElement.classList.contains('Cities')) return;
         setActiveElement(tr);
         let list = filterList(data, activeTr, false, true);
-        if (list.length == 0) return;
-        cityTable = document.getElementsByClassName('Cities')[0]
+        if (list.length == 0) {
+            alert('Empty');
+            return;
+        }
+        cityTable = document.getElementsByClassName('Cities')[0];
         if (cityTable) cityTable.remove();
         displayTable(list, 'Container', 'Cities');
     }
@@ -217,7 +222,7 @@ const filterList = (list, elem = null, isRegion = false, isCity = false) => {
 
         arr = list.filter(item => {
             let [code1, code2, code3, code4] = item.code.split('-');
-            return item.level != '1' && code1 == code1T && code2 == code2T && code3 == code3T && code4 != '000';
+            return item.level == '2' && code1 == code1T && code2 == code2T  && code4 != '000';
         })
 
     } else if (isRegion && elem != null) {
