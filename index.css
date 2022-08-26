@@ -8,21 +8,17 @@
 .Container {
     display: flex;
     width: 100%;
-    height: 800px;
-    justify-content: space-between;
-
+    justify-content: flex-start;
 }
 
 table {
     display: flex;
     flex-direction: column;
+    width: 50%;
     margin-left: 15px;
     margin-right: 15px;
-    min-width: 500px;
-    max-width: 800px;
-    justify-content: space-around;
-
-    overflow-y: scroll;
+    min-width: 350px;
+    justify-content: flex-start;
 
     border: 1px solid black;
     border-collapse: collapse;
@@ -68,19 +64,23 @@ tr:hover {
 
 .Input {
     display: flex;
-    width: 100%;
     height: 70px;
     align-items: center;
-    justify-content: space-around;
+    justify-content: flex-start;
     background-color: rgb(170, 215, 255);
 }
-.active{
-    background-color: rgba(195, 255, 104, 0.747)!important;
+
+.Input-region {
+    padding: 5px;
+    margin: 5px;
+    border-radius: 7px;
 }
-.Secondary{
-    display: flex;
-    width: 90%;
+
+.active {
+    background-color: rgba(195, 255, 104, 0.747) !important;
+}
+
+.Secondary {
     align-self: center;
-    min-height: 300px;
-    max-height: 500px;
+    width: 90%;
 }

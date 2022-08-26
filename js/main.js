@@ -8,9 +8,10 @@ class Item {
 let data = [];
 let activeTr = null;
 
-let input = document.getElementsByClassName('Input-region')[0];
-let rows = document.getElementsByClassName('row');
+const input = document.getElementsByClassName('Input-region')[0];
+
 input.oninput = () => {
+    let rows = document.getElementsByClassName('row');
     if (input.value.length > 3) {
         for (let i = 0; i < rows.length; i++) {
             let isContain = rows.item(i).childNodes[1].textContent.includes(input.value);
@@ -22,10 +23,10 @@ input.oninput = () => {
         }
     }
 }
-document.addEventListener("DOMContentLoaded", async () => {
-    data = await loadSplit('big.csv');
 
-    displayTable(data.filter(elem => elem.level != '2' && elem.code.split('-')[1] == '000'), "Container");
+document.addEventListener("DOMContentLoaded", async () => {
+    data = await loadRegex('big.csv');
+    displayTable(filterList(data), "Container");
 })
 
 
@@ -54,8 +55,6 @@ const loadRegex = async (name) => {
     return arr;
 
 }
-
-
 
 const loadSplit = async (name) => {
     let result = await fetch('/data/' + name, {
@@ -92,14 +91,14 @@ const displayList = (list) => {
     }
     document.body.appendChild(pre);
 }
-//TODO displayfiltered()
-//TODO Рендер с параметром(нужны регионы\нет)
-const displayTable = (list, name) => {
+
+const displayTable = (list, name, tableName = null) => {
     let div = document.getElementsByClassName(name)[0];
     let table = document.createElement('table');
-
+    if (tableName != null) table.classList.add(tableName);
 
     let thead = document.createElement('thead');
+    thead.classList.add('head');
     let thr = thead.insertRow();
     let thdCode = thr.insertCell();
     thdCode.textContent = 'Код';
@@ -111,6 +110,7 @@ const displayTable = (list, name) => {
 
     for (let i = 0; i < list.length; i++) {
         let tr = table.insertRow();
+        tr.classList.add('row');
         for (const key in list[i]) {
             let td = tr.insertCell();
             td.textContent = list[i][key];
@@ -118,48 +118,120 @@ const displayTable = (list, name) => {
         }
         table.appendChild(tr);
     }
-    if (!table.classList.contains('Secondary')) {
+
+    if (!table.classList.contains('Secondary') && tableName == null) {
         table.onclick = (e) => {
             let tr = e.target.closest('tr');
-            if (activeTr == tr) return;
-            if (activeTr) activeTr.classList.remove('active');
-            activeTr = tr;
-            activeTr.classList.add('active');
+            //console.log(tr.parentElement);
+            if (tr.parentElement.classList.contains('head')) return;
+            if (activeTr == tr) {
+                displayNonActive();
+                removeActiveElement();
+                return;
+            };
+            setActiveElement(tr);
             displaySubTable(data, activeTr);
         }
     }
-
     div.appendChild(table);
-
-
 }
 
 const displaySubTable = (list, elem) => {
     //let arr = list.filter(item => item.level == '2');
+    let existingTable = document.getElementsByClassName('Secondary')[0];
+    if (existingTable) existingTable.remove();
     let table = document.createElement('table');
     table.classList.add('Secondary');
 
     // Обойтись без split'a(substring)
-    list = list.filter(item => {
-        let [code1, code2, code3, code4] = item.code.split('-');
-        let [code1T, code2T, code3T, code4T] = elem.firstChild.textContent.split('-');
-        return item.level != '2' && code1 == code1T && code2 != '000';
-
-    })
+    let arr = filterList(list, elem, true);
+    if (arr.length == 0) return;
     // Рисование таблицы
-    for (let i = 0; i < list.length; i++) {
+    for (let i = 0; i < arr.length; i++) {
         let tr = table.insertRow();
-        for (const key in list[i]) {
+        for (const key in arr[i]) {
             let td = tr.insertCell();
-            td.textContent = list[i][key];
+            td.textContent = arr[i][key];
             tr.appendChild(td);
         }
         table.appendChild(tr);
     }
-
-    elem.insertAdjacentElement('afterEnd',table);
+    table.onclick = (e) => {
+        let tr = e.target.closest('tr');
+        if (tr.parentElement.classList.contains('Cities')) return;
+        setActiveElement(tr);
+        let list = filterList(data, activeTr, false, true);
+        if (list.length == 0) return;
+        cityTable = document.getElementsByClassName('Cities')[0]
+        if (cityTable) cityTable.remove();
+        displayTable(list, 'Container', 'Cities');
+    }
+    hideNonActive();
+    elem.insertAdjacentElement('afterEnd', table);
 
 }
+
+const hideNonActive = () => {
+    let rows = document.getElementsByClassName('row');
+    removeSubTable();
+
+    for (let i = 0; i < rows.length; i++) {
+        let isContain = rows.item(i).classList.contains('active');
+        if (!isContain) rows.item(i).style.display = 'none';
+    }
+}
+
+const displayNonActive = () => {
+    let rows = document.getElementsByClassName('row');
+    removeSubTable();
+
+    for (let i = 0; i < rows.length; i++) {
+        rows.item(i).style.display = 'flex';
+    }
+}
+
+const removeSubTable = () => {
+    let existingTable = document.getElementsByClassName('Secondary')[0];
+    if (existingTable) existingTable.remove();
+}
+
+const removeActiveElement = () => {
+    let item = document.getElementsByClassName('active')[0];
+    if (item) item.classList.remove('active');
+    activeTr = null;
+}
+
+const setActiveElement = (tr) => {
+    if (activeTr) activeTr.classList.remove('active');
+    activeTr = tr;
+    activeTr.classList.add('active');
+}
+
+const filterList = (list, elem = null, isRegion = false, isCity = false) => {
+    let arr;
+
+    if (isCity && elem != null) {
+        let [code1T, code2T, code3T] = elem.firstChild.textContent.split('-');
+
+        arr = list.filter(item => {
+            let [code1, code2, code3, code4] = item.code.split('-');
+            return item.level != '1' && code1 == code1T && code2 == code2T && code3 == code3T && code4 != '000';
+        })
+
+    } else if (isRegion && elem != null) {
+        let code1T = elem.firstChild.textContent.split('-')[0];
+        arr = list.filter(item => {
+            let [code1, code2, code3] = item.code.split('-');
+            return item.level != '2' && code1 == code1T && code2 != '000' && code3 == '000';
+        })
+    } else {
+        arr = list.filter(item => item.level != '2' && item.code.split('-')[1] == '000')
+    }
+    return arr;
+}
+
+
+
 
 const setLoading = () => {
     if (document.body.style.filter) document.body.style.filter = '';
