@@ -7,46 +7,66 @@ class Item {
 }
 let data = [];
 let activeTr = null;
-let citiesSorted = [];
 
-const input = document.getElementsByClassName('Input-region')[0];
+// оставлять регион подсвеченным
+const inputRegion = document.querySelector('.Input-region');
 
-input.oninput = () => {
-    let rows = document.getElementsByClassName('row');
-    let table = document.getElementsByClassName('Secondary')[0];
-    let cities = document.getElementsByClassName('Cities')[0];
-    if (input.value.length > 3) {
-        for (let i = 0; i < rows.length; i++) {
-            let isContain = rows.item(i).childNodes[1].textContent.toLowerCase().includes(input.value.toLowerCase());
-            if (!isContain) rows.item(i).style.display = 'none';
-            if (table) table.style.display = 'none'
-            if (cities) cities.remove();
+inputRegion.oninput = () => {
+    // querySelector .class
+    let rows = document.querySelectorAll('.Primary > .row');
+    let subTable = document.querySelector('.Secondary');
+    let cities = document.querySelector('.Cities');
+    if (inputRegion.value.length > 3) {
+        for (const row of rows) {
+            let isContain = row.childNodes[1].textContent.toLowerCase().includes(inputRegion.value.toLowerCase());
+            if (!isContain) row.classList.add('NonVisible');
         }
+        if (subTable) subTable.remove();
+        if (cities) cities.remove();
     } else {
-        for (let i = 0; i < rows.length; i++) {
-            rows.item(i).style.display = 'flex';
-            if (table) table.style.display = 'flex';
+        for (const row of rows) {
+            row.classList.remove('NonVisible');
         }
     }
 }
+const inputCity = document.querySelector('.Input-city');
 
-const select = document.getElementsByClassName('Selector')[0];
+inputCity.oninput = () => {
+    let rows = document.querySelectorAll('.Cities > .row');
+
+    if (inputCity.value.length > 2) {
+        for (const row of rows) {
+            let isContain = row.childNodes[1].textContent.toLowerCase().includes(inputCity.value.toLowerCase());
+            if (!isContain) row.classList.add('NonVisible');
+        }
+    } else {
+        for (const row of rows) {
+            row.classList.remove('NonVisible');
+        }
+    }
+
+}
+// Select event
+const select = document.querySelector('.Selector');
+
 select.addEventListener('change', async (e) => {
     let time;
     switch (e.target.value) {
+
         case "regex":
             time = Date.now()
             data = await loadRegex('big.csv');
+            console.log(Date.now() - time);
             document.getElementsByClassName('Primary')[0].remove();
             displayTable(filterList(data), "Container");
-            console.log(Date.now() - time);
             break;
+
         case "split":
             time = Date.now()
             data = await loadSplit('big.csv');
+            console.log(Date.now() - time);
             document.getElementsByClassName('Primary')[0].remove();
             displayTable(filterList(data), "Container");
-            console.log(Date.now() - time);
             break;
 
         default:
@@ -55,17 +75,14 @@ select.addEventListener('change', async (e) => {
     }
 });
 
+// Load content on page start
+
 document.addEventListener("DOMContentLoaded", async () => {
     data = await loadRegex('big.csv');
     displayTable(filterList(data), "Container");
-    citiesSorted = data.filter(item =>
-        item.level == '2'
-        && item.code.split('-')[3] != '000')
-        .sort((a, b) => a.name.localeCompare(b.name)
-        );
 })
 
-
+// parse file by regex pattern and fill items array
 const loadRegex = async (name) => {
 
     let result = await fetch('/data/' + name, {
@@ -120,39 +137,40 @@ const displayList = (list) => {
         let p = document.createElement('p');
         p.textContent = item.name + '-' + item.code + '-' + item.level;
         pre.appendChild(p);
-        //pre.textContent+=item;
     }
     document.body.appendChild(pre);
 }
-
-const displayTable = (list, name, tableName = null) => {
-    let div = document.getElementsByClassName(name)[0];
-    //if(!table.classList.contains('Secondary') && tableName == null) div.firstChild.remove();
+// right r left
+const displayTable = (list, className, tableName = null) => {
+    let div = document.querySelector('.' + className);
     let table = generateTable(list);
     if (tableName != null) table.classList.add(tableName);
-
+    else table.classList.add('Primary');
+    // он клик вынести глобально
     if (!table.classList.contains('Secondary') && tableName == null) {
         table.onclick = (e) => {
             let tr = e.target.closest('tr');
             //console.log(tr.parentElement);
             if (tr.parentElement.classList.contains('head')) return;
-            if (activeTr == tr) {
+            else if (activeTr == tr) {
                 displayNonActive();
                 removeActiveElement();
                 return;
             };
             setActiveElement(tr);
             displaySubTable(data, activeTr);
+            //active Dom table
         }
     }
-    if(tableName == null) div.prepend(table);
+    // rerender
+    if (tableName == null) div.prepend(table);
     else div.appendChild(table);
-    
+
 }
 
 const displaySubTable = (list, elem) => {
 
-    let existingTable = document.getElementsByClassName('Secondary')[0];
+    let existingTable = document.querySelector('.Secondary');
     if (existingTable) existingTable.remove();
 
     let arr = filterList(list, elem, true);
@@ -164,14 +182,16 @@ const displaySubTable = (list, elem) => {
         let tr = e.target.closest('tr');
         if (tr.parentElement.classList.contains('Cities')) return;
         setActiveElement(tr);
+        // active list
         let list = filterList(data, activeTr, false, true);
-        if (list.length == 0) {
-            alert('Empty');
-            return;
-        }
-        cityTable = document.getElementsByClassName('Cities')[0];
+        cityTable = document.querySelector('.Cities');
         if (cityTable) cityTable.remove();
-        displayTable(list, 'Container', 'Cities');
+        if (list.length == 0) {
+            console.log('Empty region');
+            return;
+        } else {
+            displayTable(list, 'Container', 'Cities');
+        }
     }
     hideNonActive();
     elem.insertAdjacentElement('afterEnd', table);
@@ -182,28 +202,29 @@ const hideNonActive = () => {
     let rows = document.getElementsByClassName('row');
     removeSubTable();
 
-    for (let i = 0; i < rows.length; i++) {
-        let isContain = rows.item(i).classList.contains('active');
-        if (!isContain) rows.item(i).style.display = 'none';
+    for (const row of rows) {
+        // class or style
+        let isContain = row.classList.contains('active');
+        if (!isContain) row.classList.add('NonVisible');
     }
 }
 
 const displayNonActive = () => {
     let rows = document.getElementsByClassName('row');
     removeSubTable();
-
-    for (let i = 0; i < rows.length; i++) {
-        rows.item(i).style.display = 'flex';
+    for (const row of rows) {
+        row.classList.remove('NonVisible');
     }
 }
 
 const removeSubTable = () => {
-    let existingTable = document.getElementsByClassName('Secondary')[0];
+    let existingTable = document.querySelector('.Secondary');
     if (existingTable) existingTable.remove();
 }
 
 const removeActiveElement = () => {
-    let item = document.getElementsByClassName('active')[0];
+    //querySelector .class
+    let item = document.querySelector('.active');
     if (item) item.classList.remove('active');
     activeTr = null;
 }
@@ -218,8 +239,9 @@ const filterList = (list, elem = null, isRegion = false, isCity = false) => {
     let arr;
 
     if (isCity && elem != null) {
+        // test matchall or match code
         arr = list.filter(item => {
-            let [code1, code2, _, code4] = item.code.split('-');
+            let [code1, code2, _, code4] = item.code.match(/(\d+)-(\d+)-(\d+)-(\d+)/).slice(1, -1);
             let [code1T, code2T] = elem.firstChild.textContent.split('-');
             return item.level == '2' && code1 == code1T && code2 == code2T && code4 != '000';
         })
@@ -239,7 +261,6 @@ const filterList = (list, elem = null, isRegion = false, isCity = false) => {
 const generateTable = (list, isSub = false) => {
     let table = document.createElement('table');
     if (!isSub) {
-        table.classList.add('Primary');
         let thead = document.createElement('thead');
         thead.classList.add('head');
         let thr = thead.insertRow();

@@ -34,7 +34,7 @@ tr {
 }
 
 td {
-    padding: 5px;
+    padding: 10px 5px;
     display: inline-flex;
     justify-content: center;
     align-items: center;
@@ -66,7 +66,7 @@ tr:hover {
     display: flex;
     height: 70px;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: space-around;
     background-color: rgb(170, 215, 255);
 }
 
@@ -89,4 +89,7 @@ tr:hover {
 .Secondary {
     align-self: center;
     width: 90%;
+}
+.NonVisible{
+    display: none;
 }
