@@ -12,7 +12,6 @@ let activeTr = null;
 const inputRegion = document.querySelector('.Input-region');
 
 inputRegion.oninput = () => {
-    // querySelector .class
     let rows = document.querySelectorAll('.Primary > .row');
     let subTable = document.querySelector('.Secondary');
     let cities = document.querySelector('.Cities');
@@ -80,6 +79,42 @@ select.addEventListener('change', async (e) => {
 document.addEventListener("DOMContentLoaded", async () => {
     data = await loadRegex('big.csv');
     displayTable(filterList(data), "Container");
+    let table = document.querySelector('.Primary');
+    table.onclick = (e) => {
+        let tr = e.target.closest('tr');
+        if (tr.parentElement.classList.contains('head')) {
+            return;
+        }
+        else if (tr.parentElement.classList.contains('Primary')) {
+            if (activeTr == tr) {
+                displayNonActive();
+                removeActiveElement();
+                removeSubTable();
+                removeCityTable();
+                return;
+            };
+            setActiveElement(tr);
+            displaySubTable(data, activeTr);
+        } else if (tr.parentElement.classList.contains('Secondary')) {
+            if (tr.parentElement.classList.contains('Cities')) return;
+            else if (activeTr == tr) {
+                displayNonActive();
+                removeActiveElement();
+                removeSubTable();
+                removeCityTable();
+                return;
+            };
+            setActiveElement(tr);
+            let list = filterList(data, activeTr, false, true);
+            removeCityTable();
+            if (list.length == 0) {
+                console.log('Empty region');
+                return;
+            } else {
+                displayTable(list, 'Container', 'Cities');
+            }
+        }
+    }
 })
 
 // parse file by regex pattern and fill items array
@@ -146,53 +181,16 @@ const displayTable = (list, className, tableName = null) => {
     let table = generateTable(list);
     if (tableName != null) table.classList.add(tableName);
     else table.classList.add('Primary');
-    // он клик вынести глобально
-    if (!table.classList.contains('Secondary') && tableName == null) {
-        table.onclick = (e) => {
-            let tr = e.target.closest('tr');
-            //console.log(tr.parentElement);
-            if (tr.parentElement.classList.contains('head')) return;
-            else if (activeTr == tr) {
-                displayNonActive();
-                removeActiveElement();
-                return;
-            };
-            setActiveElement(tr);
-            displaySubTable(data, activeTr);
-            //active Dom table
-        }
-    }
-    // rerender
     if (tableName == null) div.prepend(table);
     else div.appendChild(table);
 
 }
 
 const displaySubTable = (list, elem) => {
-
-    let existingTable = document.querySelector('.Secondary');
-    if (existingTable) existingTable.remove();
-
     let arr = filterList(list, elem, true);
     if (arr.length == 0) return;
     // Рисование таблицы
     let table = generateTable(arr, true);
-
-    table.onclick = (e) => {
-        let tr = e.target.closest('tr');
-        if (tr.parentElement.classList.contains('Cities')) return;
-        setActiveElement(tr);
-        // active list
-        let list = filterList(data, activeTr, false, true);
-        cityTable = document.querySelector('.Cities');
-        if (cityTable) cityTable.remove();
-        if (list.length == 0) {
-            console.log('Empty region');
-            return;
-        } else {
-            displayTable(list, 'Container', 'Cities');
-        }
-    }
     hideNonActive();
     elem.insertAdjacentElement('afterEnd', table);
 
@@ -211,7 +209,6 @@ const hideNonActive = () => {
 
 const displayNonActive = () => {
     let rows = document.getElementsByClassName('row');
-    removeSubTable();
     for (const row of rows) {
         row.classList.remove('NonVisible');
     }
@@ -220,6 +217,11 @@ const displayNonActive = () => {
 const removeSubTable = () => {
     let existingTable = document.querySelector('.Secondary');
     if (existingTable) existingTable.remove();
+}
+
+const removeCityTable = () => {
+    cityTable = document.querySelector('.Cities');
+    if (cityTable) cityTable.remove();
 }
 
 const removeActiveElement = () => {
